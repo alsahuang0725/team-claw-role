@@ -85,7 +85,7 @@ export default function Roles() {
   const fetchRoles = useCallback(async () => {
     try {
       const data = await rolesApi.list();
-      setRoles(data || []);
+      setRoles(Array.isArray(data) ? data : []);
     } catch {
       setRoles([]);
     } finally {

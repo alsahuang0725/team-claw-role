@@ -3,8 +3,22 @@
 
 import { useState, useCallback } from "react";
 import { VoicePicker } from "./VoicePicker";
-import { api } from "../api/client";
-import type { WizardStepId, WizardState, GeneratedFiles } from "../types/role";
+import { rolesApi, uploadFile } from "../api/client";
+import type { GeneratedFiles } from "../api/client";
+
+// Wizard step IDs
+type WizardStepId = "type" | "name" | "voice" | "job" | "preview" | "avatar" | "channels" | "save";
+
+interface WizardState {
+  type: "main" | "sub-agent";
+  name: string;
+  voice: string;
+  jobDescription: string;
+  generatedFiles: GeneratedFiles;
+  editedFiles: GeneratedFiles;
+  avatarFile: File | null;
+  channels: Array<{ channel: "line" | "whatsapp"; status: "pending" | "active" }>;
+}
 
 // Wizard step sequence
 const STEPS: { id: WizardStepId; label: string }[] = [
@@ -88,7 +102,7 @@ export function RoleWizard({ onClose, onSaved }: Props) {
     set("isGenerating", true);
     set("error", "");
     try {
-      const files = await api.generateFiles({
+      const files = await rolesApi.generate({
         jobDescription: s.jobDescription,
         type: s.roleType,
         name: s.roleName || "Agent",
@@ -120,10 +134,10 @@ export function RoleWizard({ onClose, onSaved }: Props) {
     try {
       let avatarPath = "";
       if (s.avatarFile) {
-        const uploaded = await api.uploadFile(s.avatarFile);
+        const uploaded = await uploadFile(s.avatarFile);
         avatarPath = uploaded.url;
       }
-      await api.createRole({
+      await rolesApi.create({
         name: s.roleName,
         type: s.roleType as "main" | "sub-agent",
         ttsVoice: s.ttsVoice,

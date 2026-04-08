@@ -89,7 +89,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 // Roles API (Module A)
 // ---------------------------------------------------------------------------
 export const rolesApi = {
-  list: () => request<{ roles: AgentRole[] }>("/roles").then(d => d.roles),
+  list: () => request<AgentRole[]>("/roles"),
   get: (id: string) => request<AgentRole>(`/roles/${id}`),
   create: (data: Partial<AgentRole>) => request<AgentRole>("/roles", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: Partial<AgentRole>) =>

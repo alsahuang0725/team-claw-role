@@ -4,25 +4,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PolicyMatrix from "../components/PolicyMatrix";
 import CustomRulesEditor from "../components/CustomRulesEditor";
-
-interface Policy {
-  id: string;
-  name: string;
-  description?: string;
-  targetAgents: string[];
-  rules: Array<{ skill: string; agent?: string; permission: "allow" | "deny" | "audit" }>;
-  customRules?: string;
-  isSharedDefault?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-interface Role {
-  id: string;
-  name: string;
-}
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { policiesApi, rolesApi, type Policy, type Role } from "../api/client";
 
 export default function Policies() {
   const [policies, setPolicies] = useState<Policy[]>([]);
@@ -43,9 +25,8 @@ export default function Policies() {
 
   const fetchPolicies = useCallback(async () => {
     try {
-      const r = await fetch(`${API}/api/policies`);
-      const d = await r.json();
-      setPolicies(d.policies || []);
+      const d = await policiesApi.list();
+      setPolicies(d);
     } catch {
       setPolicies([]);
     }
@@ -53,9 +34,8 @@ export default function Policies() {
 
   const fetchRoles = useCallback(async () => {
     try {
-      const r = await fetch(`${API}/api/roles`);
-      const d = await r.json();
-      setRoles(d.roles || []);
+      const d = await rolesApi.list();
+      setRoles(Array.isArray(d) ? d.map((r: any) => ({ id: r.id, name: r.name })) : []);
     } catch {
       setRoles([]);
     }
@@ -89,13 +69,9 @@ export default function Policies() {
         customRules: wizardCustom,
       };
       if (editPolicy) {
-        await fetch(`${API}/api/policies/${editPolicy.id}`, {
-          method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
-        });
+        await policiesApi.update(editPolicy.id, payload);
       } else {
-        await fetch(`${API}/api/policies`, {
-          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
-        });
+        await policiesApi.create(payload);
       }
       await fetchPolicies();
       setWizardOpen(false);
@@ -105,7 +81,7 @@ export default function Policies() {
   }
 
   async function handleDelete(policyId: string) {
-    await fetch(`${API}/api/policies/${policyId}`, { method: "DELETE" });
+    await policiesApi.delete(policyId);
     setDeleteConfirm(null);
     await fetchPolicies();
   }

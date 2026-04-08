@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { Voice } from "../api/client";
-import { api } from "../api/client";
+import { voicesApi } from "../api/client";
 
 interface Props {
   value: string;
@@ -18,7 +18,7 @@ export function VoicePicker({ value, onChange }: Props) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api.listVoices()
+    voicesApi.list()
       .then(setVoices)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
