@@ -10,6 +10,8 @@ export default [
       "nemoclaw/**",
       "node_modules/**",
       "docs/_build/**",
+      "frontend/**",
+      "backend/**",
     ],
   },
 
