@@ -2,8 +2,8 @@
 # Module D — TTS Flask API routes
 
 from flask import Flask, request, jsonify, send_file, Response
-from ..tts.generate import generate_tts, generate_preview, is_edge_tts_available
-from ..tts.voice_list import get_voices, get_edge_voice_name
+from backend.tts.generate import generate_tts, generate_preview, is_edge_tts_available
+from backend.tts.voice_list import get_voices, get_edge_voice_name
 
 def create_tts_app() -> Flask:
     app = Flask(__name__)

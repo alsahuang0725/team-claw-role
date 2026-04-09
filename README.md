@@ -1,204 +1,90 @@
-# 🦞 NVIDIA NemoClaw: Reference Stack for Running OpenClaw in OpenShell
+# team-claw-role
 
-<!-- start-badges -->
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue)](https://github.com/NVIDIA/NemoClaw/blob/main/LICENSE)
-[![Security Policy](https://img.shields.io/badge/Security-Report%20a%20Vulnerability-red)](https://github.com/NVIDIA/NemoClaw/blob/main/SECURITY.md)
-[![Project Status](https://img.shields.io/badge/status-alpha-orange)](https://github.com/NVIDIA/NemoClaw/blob/main/docs/about/release-notes.md)
-[![Discord](https://img.shields.io/badge/Discord-Join-7289da)](https://discord.gg/XFpfPv9Uvx)
-<!-- end-badges -->
+> **Status:** development · Module E (UI 驗收) pending Ryan review
 
-<!-- start-intro -->
-NVIDIA NemoClaw is an open source reference stack that simplifies running [OpenClaw](https://openclaw.ai) always-on assistants more safely.
-It installs the [NVIDIA OpenShell](https://github.com/NVIDIA/OpenShell) runtime, part of NVIDIA Agent Toolkit, which provides additional security for running autonomous agents.
-<!-- end-intro -->
+Enterprise multi-agent management platform built on [NVIDIA NemoClaw](https://github.com/NVIDIA/NemoClaw).
 
-> **Alpha software**
->
-> NemoClaw is available in early preview starting March 16, 2026.
-> This software is not production-ready.
-> Interfaces, APIs, and behavior may change without notice as we iterate on the design.
-> The project is shared to gather feedback and enable early experimentation.
-> We welcome issues and discussion from the community while the project evolves.
+## Architecture
 
-NemoClaw adds guided onboarding, a hardened blueprint, state management, OpenShell-managed channel messaging, routed inference, and layered protection on top of the [NVIDIA OpenShell](https://github.com/NVIDIA/OpenShell) runtime. For the full feature list, refer to [Overview](https://docs.nvidia.com/nemoclaw/latest/about/overview.html). For the system diagram, component model, and blueprint lifecycle, refer to [How It Works](https://docs.nvidia.com/nemoclaw/latest/about/how-it-works.html) and [Architecture](https://docs.nvidia.com/nemoclaw/latest/reference/architecture.html).
+```
+team-claw-role/
+├── frontend/           React + TypeScript + Vite
+├── backend/
+│   ├── agents/        Module A — Role CRUD + AI file generation
+│   ├── policies/      Module B — Policy Engine
+│   ├── chatroom/      Module C — Socket.IO chatroom
+│   └── tts/           Module D — edge-tts voice catalog
+├── nemoclaw/          NemoClaw plugin (TypeScript, OpenClaw extension)
+├── docker-compose.yml
+└── Dockerfile         (NemoClaw sandbox image — for full OpenClaw deployment)
+```
 
-## Getting Started
+### Modules
 
-Follow these steps to install NemoClaw and run your first sandboxed OpenClaw agent.
+| Module | Description |
+|--------|-------------|
+| **A — Roles** | Agent role CRUD, SOUL.md/IDENTITY.md/AGENTS.md generation via LLM |
+| **B — Policies** | Policy Engine with 19-skill permission matrix (Allow/Deny/Audit) |
+| **C — Chatroom** | Socket.IO real-time group chat with AgentRelay |
+| **D — Voice** | edge-tts voice catalog + TTS generation |
 
-<!-- start-quickstart-guide -->
+## Local Development
 
 ### Prerequisites
 
-Before getting started, check the prerequisites to ensure you have the necessary software and hardware to run NemoClaw.
+- Python 3.12 (ComfyUI embedded Python at `C:\Users\Ryan\documents\comfyui\python_embeded\python.exe`)
+- Node.js 22+
+- Docker (optional, for Docker deployment)
 
-#### Hardware
-
-| Resource | Minimum        | Recommended      |
-|----------|----------------|------------------|
-| CPU      | 4 vCPU         | 4+ vCPU          |
-| RAM      | 8 GB           | 16 GB            |
-| Disk     | 20 GB free     | 40 GB free       |
-
-The sandbox image is approximately 2.4 GB compressed. During image push, the Docker daemon, k3s, and the OpenShell gateway run alongside the export pipeline, which buffers decompressed layers in memory. On machines with less than 8 GB of RAM, this combined usage can trigger the OOM killer. If you cannot add memory, configuring at least 8 GB of swap can work around the issue at the cost of slower performance.
-
-#### Software
-
-| Dependency | Version                          |
-|------------|----------------------------------|
-| Linux      | Ubuntu 22.04 LTS or later |
-| Node.js    | 22.16 or later |
-| npm        | 10 or later |
-| Container runtime | Supported runtime installed and running |
-| [OpenShell](https://github.com/NVIDIA/OpenShell) | Installed |
-
-#### OpenShell Lifecycle
-
-For NemoClaw-managed environments, use `nemoclaw onboard` when you need to create or recreate the OpenShell gateway or sandbox.
-Avoid `openshell self-update`, `npm update -g openshell`, `openshell gateway start --recreate`, or `openshell sandbox create` directly unless you intend to manage OpenShell separately and then rerun `nemoclaw onboard`.
-
-#### Container Runtimes
-
-| Platform | Supported runtimes | Notes |
-|----------|--------------------|-------|
-| Linux | Docker, Podman | Primary supported path. |
-| macOS (Apple Silicon) | Colima, Docker Desktop, Podman | Install Xcode Command Line Tools (`xcode-select --install`) and start the runtime before running the installer. |
-| macOS (Intel) | Colima, Docker Desktop | Podman on Intel macOS is not yet supported. |
-| Windows WSL | Docker Desktop (WSL backend) | Supported target path. |
-| DGX Spark | Docker | Use the standard installer and `nemoclaw onboard`. |
-
-### Install NemoClaw and Onboard OpenClaw Agent
-
-Download and run the installer script.
-The script installs Node.js if it is not already present, then runs the guided onboard wizard to create a sandbox, configure inference, and apply security policies.
-
-> **ℹ️ Note**
->
-> NemoClaw creates a fresh OpenClaw instance inside the sandbox during the onboarding process.
+### Backend
 
 ```bash
-curl -fsSL https://www.nvidia.com/nemoclaw.sh | bash
+cd team_claw_role
+C:\Users\Ryan\documents\comfyui\python_embeded\python.exe backend/server.py
+# → http://localhost:8000
 ```
 
-If you use nvm or fnm to manage Node.js, the installer may not update your current shell's PATH.
-If `nemoclaw` is not found after install, run `source ~/.bashrc` (or `source ~/.zshrc` for zsh) or open a new terminal.
+**API endpoints:**
 
-When the install completes, a summary confirms the running environment:
-
-```text
-──────────────────────────────────────────────────
-Sandbox      my-assistant (Landlock + seccomp + netns)
-Model        nvidia/nemotron-3-super-120b-a12b (NVIDIA Endpoints)
-──────────────────────────────────────────────────
-Run:         nemoclaw my-assistant connect
-Status:      nemoclaw my-assistant status
-Logs:        nemoclaw my-assistant logs --follow
-──────────────────────────────────────────────────
-
-[INFO]  === Installation complete ===
-```
-
-### Chat with the Agent
-
-Connect to the sandbox, then chat with the agent through the TUI or the CLI.
-
-```bash
-nemoclaw my-assistant connect
-```
-
-In the sandbox shell, open the OpenClaw terminal UI and start a chat:
-
-```bash
-openclaw tui
-```
-
-Alternatively, send a single message and print the response:
-
-```bash
-openclaw agent --agent main --local -m "hello" --session-id test
-```
-
-### Uninstall
-
-To remove NemoClaw and all resources created during setup, run the uninstall script:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/NVIDIA/NemoClaw/refs/heads/main/uninstall.sh | bash
-```
-
-| Flag               | Effect                                              |
-|--------------------|-----------------------------------------------------|
-| `--yes`            | Skip the confirmation prompt.                       |
-| `--keep-openshell` | Leave the `openshell` binary installed.              |
-| `--delete-models`  | Also remove NemoClaw-pulled Ollama models.           |
-
-For troubleshooting installation or onboarding issues, see the [Troubleshooting guide](https://docs.nvidia.com/nemoclaw/latest/reference/troubleshooting.html).
-
-<!-- end-quickstart-guide -->
-
-## Documentation
-
-Refer to the following pages on the official documentation website for more information on NemoClaw.
-
-| Page | Description |
+| Path | Description |
 |------|-------------|
-| [Overview](https://docs.nvidia.com/nemoclaw/latest/about/overview.html) | What NemoClaw does and how it fits together. |
-| [How It Works](https://docs.nvidia.com/nemoclaw/latest/about/how-it-works.html) | Plugin, blueprint, sandbox lifecycle, and protection layers. |
-| [Architecture](https://docs.nvidia.com/nemoclaw/latest/reference/architecture.html) | Plugin structure, blueprint lifecycle, sandbox environment, and host-side state. |
-| [Inference Options](https://docs.nvidia.com/nemoclaw/latest/inference/inference-options.html) | Supported providers, validation, and routed inference configuration. |
-| [Network Policies](https://docs.nvidia.com/nemoclaw/latest/reference/network-policies.html) | Baseline rules, operator approval flow, and egress control. |
-| [Customize Network Policy](https://docs.nvidia.com/nemoclaw/latest/network-policy/customize-network-policy.html) | Static and dynamic policy changes, presets. |
-| [Security Best Practices](https://docs.nvidia.com/nemoclaw/latest/security/best-practices.html) | Controls reference, risk framework, and posture profiles for sandbox security. |
-| [Sandbox Hardening](https://docs.nvidia.com/nemoclaw/latest/deployment/sandbox-hardening.html) | Container security measures, capability drops, process limits. |
-| [CLI Commands](https://docs.nvidia.com/nemoclaw/latest/reference/commands.html) | Full NemoClaw CLI command reference. |
-| [Troubleshooting](https://docs.nvidia.com/nemoclaw/latest/reference/troubleshooting.html) | Common issues and resolution steps. |
+| `GET /health` | Health check |
+| `GET /api/roles` | List all roles |
+| `POST /api/roles` | Create role |
+| `GET|POST /api/policies` | Policy Engine |
+| `GET /api/chatroom/rooms/<room>` | Chatroom |
+| `GET /api/voices` | Voice catalog |
+| `POST /api/voices/generate` | TTS generation |
 
-## Project Structure
+### Frontend
 
-The following directories make up the NemoClaw repository.
-
-```text
-NemoClaw/
-├── bin/              # CLI entry point and library modules (CJS)
-├── nemoclaw/         # TypeScript plugin (Commander CLI extension)
-│   └── src/
-│       ├── blueprint/    # Runner, snapshot, SSRF validation, state
-│       ├── commands/     # Slash commands, migration state
-│       └── onboard/      # Onboarding config
-├── nemoclaw-blueprint/   # Blueprint YAML and network policies
-├── scripts/          # Install helpers, setup, automation
-├── test/             # Integration and E2E tests
-└── docs/             # User-facing docs (Sphinx/MyST)
+```bash
+cd frontend
+npm install
+npm run dev     # http://localhost:3000 (dev mode with API proxy)
+npm run build   # production build
 ```
 
-## Community
+## Docker Deployment
 
-Join the NemoClaw community to ask questions, share feedback, and report issues.
+```bash
+cd team_claw_role
+docker compose up --build
+# → Frontend: http://localhost:3001
+# → Backend:  http://localhost:8000
+```
 
-- [Discord](https://discord.gg/XFpfPv9Uvx)
-- [GitHub Discussions](https://github.com/NVIDIA/NemoClaw/discussions)
-- [GitHub Issues](https://github.com/NVIDIA/NemoClaw/issues)
+## Version Info
 
-## Contributing
+- **NemoClaw base:** [adbea05](https://github.com/NVIDIA/NemoClaw/commit/adbea05)
+- **OpenClaw:** Inherits version from host Alsa gateway (v2026.3.28+)
+- **Node.js:** ≥22.16.0 required
 
-We welcome contributions. See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, coding standards, and the PR process.
+## Team
 
-## Security
-
-NVIDIA takes security seriously.
-If you discover a vulnerability in NemoClaw, **DO NOT open a public issue.**
-Use one of the private reporting channels described in [SECURITY.md](SECURITY.md):
-
-- Submit a report through the [NVIDIA Vulnerability Disclosure Program](https://www.nvidia.com/en-us/security/report-vulnerability/).
-- Send an email to [psirt@nvidia.com](mailto:psirt@nvidia.com) encrypted with the [NVIDIA PGP key](https://www.nvidia.com/en-us/security/pgp-key).
-- Use [GitHub's private vulnerability reporting](https://docs.github.com/en/code-security/how-tos/report-and-fix-vulnerabilities/configure-vulnerability-reporting/configuring-private-vulnerability-reporting-for-a-repository) to submit a report directly on this repository.
-
-For security bulletins and PSIRT policies, visit the [NVIDIA Product Security](https://www.nvidia.com/en-us/security/) portal.
-
-## Notice and Disclaimer
-
-This software automatically retrieves, accesses or interacts with external materials. Those retrieved materials are not distributed with this software and are governed solely by separate terms, conditions and licenses. You are solely responsible for finding, reviewing and complying with all applicable terms, conditions, and licenses, and for verifying the security, integrity and suitability of any retrieved materials for your specific use case. This software is provided "AS IS", without warranty of any kind. The author makes no representations or warranties regarding any retrieved materials, and assumes no liability for any losses, damages, liabilities or legal consequences from your use or inability to use this software or any retrieved materials. Use this software and the retrieved materials at your own risk.
-
-## License
-
-Apache 2.0. See [LICENSE](LICENSE).
+| Member | Role |
+|--------|------|
+| John | System architecture, Module A/B |
+| David | Policy Engine, Module C |
+| Lisa | Voice/Avatar, Module D |
+| Alsa | Project lead, coordination |

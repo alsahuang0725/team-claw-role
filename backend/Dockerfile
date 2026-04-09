@@ -1,41 +1,30 @@
-# backend/Dockerfile — Python FastAPI backend for team-claw-role
-FROM python:3.12-slim AS builder
-
-WORKDIR /app
-
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
-
-# Copy pyproject.toml + lock
-COPY pyproject.toml ./
-COPY uv.lock ./
-
-# Freeze-install deps
-RUN uv sync --frozen --no-dev
-
-# Copy source
-COPY agents/ ./agents/
-COPY policies/ ./policies/
-COPY chatroom/ ./chatroom/
-COPY tts/ ./tts/
-COPY server.py ./
-
-# Runtime image
+# backend/Dockerfile — Python Flask backend for team-claw-role
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install runtime deps
-COPY --from=builder /app/.venv /app/.venv
-COPY agents/ ./agents/
+# Install runtime dependencies (edge-tts, Flask, Socket.IO, PostgreSQL adapter)
+RUN pip install --no-cache-dir \
+    flask \
+    flask-cors \
+    flask-socketio \
+    python-socketio \
+    python-engineio \
+    edge-tts \
+    pyyaml \
+    psycopg2-binary \
+    werkzeug
+
+# Copy backend source (agents/, policies/, chatroom/, tts/, server.py)
+COPY agents/   ./agents/
 COPY policies/ ./policies/
 COPY chatroom/ ./chatroom/
-COPY tts/ ./tts/
+COPY tts/      ./tts/
 COPY server.py ./
-
-# edge-tts needs access to a Python with the module
-RUN pip install --no-cache-dir edge-tts flask flask-cors flask-socketio python-socketio pyyaml
+COPY __init__.py ./
 
 EXPOSE 8000
 
+# Run via DispatcherMiddleware + wsgiref (threaded)
+# In Docker, wsgiref doesn't have the Windows port-sharing conflict
 CMD ["python", "server.py"]

@@ -2,12 +2,16 @@
 #
 # Usage:
 #   docker compose up --build
-#   Open: http://localhost:3000
+#   Then open http://localhost:3001
+#
+# Ports:
+#   frontend :3001 (http) → container :80
+#   backend  :8000 (http+websocket) → container :8000
 #
 # Services:
-#   frontend  — React app (nginx, :80 → :3000 mapped)
+#   frontend  — React app (nginx)
 #   backend   — Python Flask API + Socket.IO (port 8000)
-#   postgres  — Shared DB for agent roles + policies
+#   postgres  — Shared DB (roles + policies)
 
 services:
   postgres:
@@ -30,6 +34,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
     environment:
       DATABASE_URL: postgresql://team_claw_role:team_claw_role_dev@postgres:5432/team_claw_role
       FLASK_ENV: production
@@ -54,7 +60,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
+      - "3001:80"
+    environment:
+      VITE_API_URL: http://localhost:8000
     depends_on:
       backend:
         condition: service_healthy

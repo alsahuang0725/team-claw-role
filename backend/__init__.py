@@ -1,2 +1,2 @@
-# SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: Apache-2.0
+# backend/__init__.py
+# Makes backend/ a Python package so "python -m backend.server" works

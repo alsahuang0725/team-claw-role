@@ -16,7 +16,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 from .generate import generate_role_files
-from ..tts.voice_list import voices_api
+from backend.tts.voice_list import voices_api
 
 BASE_DIR = Path(__file__).parent.parent.parent  # team-claw-role/
 WORKSPACES_DIR = BASE_DIR / "workspaces"
@@ -70,7 +70,7 @@ def list_voices():
     """Return the built-in edge-tts voice catalog."""
     locale = request.args.get("locale")
     gender = request.args.get("gender")
-    from ..tts.voice_list import get_voices
+    from backend.tts.voice_list import get_voices
     voices = get_voices(locale=locale, gender=gender)
     return jsonify([{
         "id": v.id,
