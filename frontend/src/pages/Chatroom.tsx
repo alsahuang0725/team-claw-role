@@ -12,7 +12,7 @@ interface ChatMessage {
   id: string;
   from: string;
   agentId?: string;
-  to: string;
+  to?: string;
   text: string;
   type: "text" | "mention" | "system";
   timestamp: string;

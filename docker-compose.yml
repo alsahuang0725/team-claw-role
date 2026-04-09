@@ -1,0 +1,76 @@
+# docker-compose.yml — team-claw-role standalone deployment
+#
+# Usage:
+#   docker compose up --build
+#   Open: http://localhost:3000
+#
+# Services:
+#   frontend  — React app (nginx, :80 → :3000 mapped)
+#   backend   — Python Flask API + Socket.IO (port 8000)
+#   postgres  — Shared DB for agent roles + policies
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: team_claw_role
+      POSTGRES_USER: team_claw_role
+      POSTGRES_PASSWORD: team_claw_role_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    health:
+      interval: 5s
+      retries: 5
+      timeout: 3s
+      start_period: 5s
+    networks:
+      - team_claw_role_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://team_claw_role:team_claw_role_dev@postgres:5432/team_claw_role
+      FLASK_ENV: production
+      WORKSPACES_DIR: /app/workspaces
+      UPLOADS_DIR: /app/uploads
+    volumes:
+      - workspaces_data:/app/workspaces
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - team_claw_role_net
+    health:
+      interval: 10s
+      retries: 3
+      timeout: 5s
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - team_claw_role_net
+    health:
+      interval: 5s
+      retries: 3
+      timeout: 3s
+      start_period: 5s
+
+networks:
+  team_claw_role_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  workspaces_data:
+  uploads_data:

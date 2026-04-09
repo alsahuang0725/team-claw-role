@@ -4,20 +4,24 @@
 import { useState, useCallback } from "react";
 import { VoicePicker } from "./VoicePicker";
 import { rolesApi, uploadFile } from "../api/client";
-import type { GeneratedFiles } from "../api/client";
+import type { AgentRole, GeneratedFiles } from "../api/client";
 
 // Wizard step IDs
 type WizardStepId = "type" | "name" | "voice" | "job" | "preview" | "avatar" | "channels" | "save";
 
 interface WizardState {
-  type: "main" | "sub-agent";
-  name: string;
-  voice: string;
+  step: WizardStepId;
+  roleType: "main" | "sub-agent" | "";
+  roleName: string;
+  ttsVoice: string;
   jobDescription: string;
   generatedFiles: GeneratedFiles;
-  editedFiles: GeneratedFiles;
   avatarFile: File | null;
+  avatarUrl: string;
   channels: Array<{ channel: "line" | "whatsapp"; status: "pending" | "active" }>;
+  isGenerating: boolean;
+  isSaving: boolean;
+  error: string;
 }
 
 // Wizard step sequence
@@ -62,6 +66,7 @@ function emptyState(): WizardState {
 interface Props {
   onClose: () => void;
   onSaved: () => void;
+  initialRole?: AgentRole;
 }
 
 export function RoleWizard({ onClose, onSaved }: Props) {

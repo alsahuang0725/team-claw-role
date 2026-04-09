@@ -4,11 +4,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import PolicyMatrix from "../components/PolicyMatrix";
 import CustomRulesEditor from "../components/CustomRulesEditor";
-import { policiesApi, rolesApi, type Policy, type Role } from "../api/client";
+import { policiesApi, rolesApi, type Policy, type AgentRole } from "../api/client";
 
 export default function Policies() {
   const [policies, setPolicies] = useState<Policy[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [roles, setRoles] = useState<AgentRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editPolicy, setEditPolicy] = useState<Policy | null>(null);

@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { rolesApi, type AgentRole } from "../api/client";
-import RoleWizard from "../components/RoleWizard";
+import { RoleWizard } from "../components/RoleWizard";
 
 const AVATAR_FALLBACK = "https://api.dicebear.com/7.x/bottts-neutral/svg?seed=agent";
 

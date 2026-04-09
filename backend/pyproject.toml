@@ -1,0 +1,23 @@
+# backend/pyproject.toml — Python dependencies for team-claw-role backend
+[project]
+name = "team-claw-role-backend"
+version = "0.1.0"
+description = "Backend API server for team-claw-role"
+requires-python = ">=3.11"
+
+dependencies = [
+    "flask>=3.1.0",
+    "flask-cors>=5.0.0",
+    "flask-socketio>=5.3.0",
+    "python-socketio>=5.11.0",
+    "python-engineio>=4.9.0",
+    "edge-tts>=6.1.0",
+    "pyyaml>=6.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
+[tool.uv]
+package = true
+managed = true
